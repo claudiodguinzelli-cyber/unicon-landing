@@ -237,7 +237,7 @@ export default function Home() {
         <div className="container flex items-center justify-between h-16 px-4">
           <div className="flex items-center">
             <img 
-              src="/manus-storage/unicon-logo_e820a1b5.png"
+              src="/unicon-logo.png"
               alt="Unicon Logo"
               className="h-16 w-auto"
               style={{width: 'auto', height: '60px'}}
@@ -538,7 +538,7 @@ export default function Home() {
             {/* Embracon */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
               <img 
-                src="/manus-storage/embracon-logo_1b7e1b10.png"
+                src="/embracon-logo.png"
                 alt="Embracon - Representante Autorizado"
                 className="h-24 w-auto object-contain"
               />
@@ -547,7 +547,7 @@ export default function Home() {
             {/* Yamaha */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
               <img 
-                src="/manus-storage/yamaha-logo_21e4b677.png"
+                src="/yamaha-logo.png"
                 alt="Yamaha - Representante Autorizado"
                 className="h-24 w-auto object-contain"
               />
@@ -556,7 +556,7 @@ export default function Home() {
             {/* Tradição */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
               <img 
-                src="/manus-storage/tradicao-logo_c7563190.png"
+                src="/tradicao-logo.png"
                 alt="Tradição - Representante Autorizado"
                 className="h-24 w-auto object-contain"
               />
@@ -565,7 +565,7 @@ export default function Home() {
             {/* Servopa */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
               <img 
-                src="/manus-storage/servopa-logo_9e4dd2ab.png"
+                src="/servopa-logo.png"
                 alt="Servopa - Representante Autorizado"
                 className="h-24 w-auto object-contain"
               />
@@ -646,7 +646,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <img 
-                src="/manus-storage/unicon-logo_e820a1b5.png"
+                src="/unicon-logo.png"
                 alt="Unicon Logo"
                 className="h-16 w-auto mb-4"
               />
