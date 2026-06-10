@@ -1,8 +1,11 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronRight, TrendingUp, DollarSign, Handshake, Shield, ChevronLeft, ChevronRight as ChevronRightIcon, Home as HomeIcon, Car, CreditCard, Users } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 /**
  * Design Philosophy: Fintech Moderno com Inspiração Redesul
@@ -14,6 +17,10 @@ import { useState, useEffect, useRef } from "react";
  */
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -28,6 +35,21 @@ export default function Home() {
   const [animatedNumbers, setAnimatedNumbers] = useState({ clients: 0, years: 0, satisfaction: 0, credit: 0 });
   const statsRef = useRef(null);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // tRPC mutation para criar lead no Agendor
+  const createLeadMutation = trpc.contact.createLead.useMutation({
+    onSuccess: () => {
+      toast.success("Mensagem enviada com sucesso! Entraremos em contato em breve.");
+      setFormData({ name: "", phone: "", creditAmount: "", creditPurpose: "" });
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      toast.error("Erro ao enviar mensagem. Tente novamente.");
+      console.error("Erro:", error);
+      setIsSubmitting(false);
+    },
+  });
 
   const testimonials = [
     {
@@ -150,40 +172,24 @@ export default function Home() {
     };
   }, [hasAnimated]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validar se todos os campos estão preenchidos
     if (!formData.name || !formData.phone || !formData.creditAmount || !formData.creditPurpose) {
-      alert('Por favor, preencha todos os campos!');
+      toast.error('Por favor, preencha todos os campos!');
       return;
     }
     
-    // Montar a mensagem para WhatsApp
-    const whatsappMessage = `Olá! Recebi uma solicitação de crédito:\n\nNome: ${formData.name}\nTelefone: ${formData.phone}\nCrédito Pretendido: ${formData.creditAmount}\nFinalidade: ${formData.creditPurpose}`;
-    
-    // Enviar para Pluga via webhook (async sem await para não bloquear)
-    fetch('https://hooks.pluga.co/webhooks/v1/claudioguinzelli@hotmail.com/unicon-form', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formData.name,
-        phone: formData.phone,
-        creditAmount: formData.creditAmount,
-        creditPurpose: formData.creditPurpose,
-        message: whatsappMessage,
-        timestamp: new Date().toISOString(),
-      }),
-    }).catch(error => console.log('Dados enviados para Pluga:', error));
-    
-    // Redirecionar para WhatsApp imediatamente
-    const encodedMessage = encodeURIComponent(whatsappMessage);
-    window.open(`https://wa.me/5549920026329?text=${encodedMessage}`, '_blank');
-    
-    // Limpar formulário
-    setFormData({ name: "", phone: "", creditAmount: "", creditPurpose: "" });
+    setIsSubmitting(true);
+
+    // Chamar a mutação tRPC que vai criar o lead no Agendor
+    createLeadMutation.mutate({
+      name: formData.name,
+      phone: formData.phone,
+      creditAmount: formData.creditAmount,
+      creditPurpose: formData.creditPurpose,
+    });
   };
 
   const products = [
@@ -224,8 +230,6 @@ export default function Home() {
 
   const [currentPlan, setCurrentPlan] = useState(0);
 
-  // Removido - agora usando animatedNumbers state
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header/Navigation */}
@@ -233,10 +237,10 @@ export default function Home() {
         <div className="container flex items-center justify-between h-16 px-4">
           <div className="flex items-center">
             <img 
-              src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663370894357/DLnMPJIQClUKFRJb.png"
+              src="/manus-storage/unicon-logo_e820a1b5.png"
               alt="Unicon Logo"
               className="h-16 w-auto"
-              style={{width: '240px', height: '160px'}}
+              style={{width: 'auto', height: '60px'}}
             />
           </div>
           <nav className="hidden md:flex items-center gap-6 flex-1 justify-center" style={{marginRight: '129px', width: '1183px'}}>
@@ -245,7 +249,7 @@ export default function Home() {
             <a href="#depoimentos" className="text-foreground hover:text-accent transition-colors text-sm font-medium">Depoimentos</a>
             <a href="#contato" className="text-foreground hover:text-accent transition-colors text-sm font-medium">Contato</a>
           </nav>
-          <a href="https://wa.me/5549920026329?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20um%20consultor%20da%20Unicon%20Investimentos." target="_blank" rel="noopener noreferrer" className="bg-accent hover:bg-accent/90 text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors inline-block">
+          <a href="#contato" className="bg-accent hover:bg-accent/90 text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors inline-block">
             Fale Conosco
           </a>
         </div>
@@ -262,7 +266,7 @@ export default function Home() {
             <p className="text-lg mb-6 text-white/90">
               Soluções de crédito e consórcio personalizadas para empresários, agricultores e pessoas que buscam crescimento financeiro sem complicações.
             </p>
-            <a href="https://wa.me/5549920026329?text=Ol%C3%A1%2C%20gostaria%20de%20simular%20um%20cons%C3%B3rcio%20ou%20cr%C3%A9dito." target="_blank" rel="noopener noreferrer" className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-full font-semibold transition-colors inline-flex items-center gap-2">
+            <a href="#contato" className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-full font-semibold transition-colors inline-flex items-center gap-2">
               Começar Agora <ChevronRight className="w-5 h-5" />
             </a>
           </div>
@@ -354,7 +358,7 @@ export default function Home() {
               />
             </div>
 
-            <a href="https://wa.me/5549920026329?text=Ol%C3%A1%2C%20gostaria%20de%20simular%20um%20cons%C3%B3rcio%20ou%20cr%C3%A9dito." target="_blank" rel="noopener noreferrer" className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors block text-center">
+            <a href="#contato" className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors block text-center">
               Simular Agora
             </a>
           </div>
@@ -520,6 +524,56 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Seção Representantes Autorizados */}
+      <section className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div className="container">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center font-montserrat text-primary">
+            REPRESENTANTES AUTORIZADOS
+          </h2>
+          <p className="text-center text-foreground/70 mb-12 max-w-2xl mx-auto">
+            Somos representantes autorizados das principais marcas de consórcio e crédito do Brasil
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+            {/* Embracon */}
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
+              <img 
+                src="/manus-storage/embracon-logo_1b7e1b10.png"
+                alt="Embracon - Representante Autorizado"
+                className="h-24 w-auto object-contain"
+              />
+            </div>
+
+            {/* Yamaha */}
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
+              <img 
+                src="/manus-storage/yamaha-logo_21e4b677.png"
+                alt="Yamaha - Representante Autorizado"
+                className="h-24 w-auto object-contain"
+              />
+            </div>
+
+            {/* Tradição */}
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
+              <img 
+                src="/manus-storage/tradicao-logo_c7563190.png"
+                alt="Tradição - Representante Autorizado"
+                className="h-24 w-auto object-contain"
+              />
+            </div>
+
+            {/* Servopa */}
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
+              <img 
+                src="/manus-storage/servopa-logo_9e4dd2ab.png"
+                alt="Servopa - Representante Autorizado"
+                className="h-24 w-auto object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Seção Contato */}
       <section id="contato" className="py-16 bg-white">
         <div className="container">
@@ -548,6 +602,7 @@ export default function Home() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                disabled={isSubmitting}
               />
               <Input
                 type="tel"
@@ -555,6 +610,7 @@ export default function Home() {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
+                disabled={isSubmitting}
               />
               <Input
                 type="text"
@@ -562,6 +618,7 @@ export default function Home() {
                 value={formData.creditAmount}
                 onChange={(e) => setFormData({ ...formData, creditAmount: e.target.value })}
                 required
+                disabled={isSubmitting}
               />
               <Input
                 type="text"
@@ -569,12 +626,14 @@ export default function Home() {
                 value={formData.creditPurpose}
                 onChange={(e) => setFormData({ ...formData, creditPurpose: e.target.value })}
                 required
+                disabled={isSubmitting}
               />
               <button
                 type="submit"
-                className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors"
+                disabled={isSubmitting}
+                className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Enviar Mensagem
+                {isSubmitting ? "Enviando..." : "Enviar Mensagem"}
               </button>
             </form>
           </div>
@@ -587,7 +646,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <img 
-                src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663370894357/DLnMPJIQClUKFRJb.png"
+                src="/manus-storage/unicon-logo_e820a1b5.png"
                 alt="Unicon Logo"
                 className="h-16 w-auto mb-4"
               />

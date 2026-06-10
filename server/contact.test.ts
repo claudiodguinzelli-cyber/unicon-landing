@@ -24,7 +24,7 @@ function createPublicContext(): TrpcContext {
       headers: {},
     } as TrpcContext["req"],
     res: {
-      clearCookie: vi.fn( ),
+      clearCookie: vi.fn(),
     } as unknown as TrpcContext["res"],
   };
 }
@@ -65,7 +65,7 @@ describe("contact.createLead", () => {
       expect.objectContaining({
         name: "João Silva",
         phone: "11999999999",
-        description: expect.stringContaining("R$ 50.000" ),
+        description: expect.stringContaining("R$ 50.000"),
       }),
       expect.objectContaining({
         headers: expect.objectContaining({
