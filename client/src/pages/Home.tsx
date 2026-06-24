@@ -1,26 +1,25 @@
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, TrendingUp, DollarSign, Handshake, Shield, ChevronLeft, ChevronRight as ChevronRightIcon, Home as HomeIcon, Car, CreditCard, Users } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import {
+  Car,
+  ChevronLeft,
+  ChevronRight,
+  ChevronRight as ChevronRightIcon,
+  CreditCard,
+  Home as HomeIcon,
+  Users,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useAuth } from "@/_core/hooks/useAuth";
 
 /**
- * Design Philosophy: Fintech Moderno com Inspiração Redesul
- * - Azul escuro (#006b9d) como cor dominante
- * - Azul ciano (#27b6cb) como acento
- * - Vermelho (#E63946) como destaque secundário
- * - Tipografia Montserrat (Bold), Glacial Indifference, Open Sans
- * - Paleta: #27b6cb #006b9d #25315c #281f37 #87b1d2 #f9fafd
+ * Landing page Unicon Investimentos.
+ * Correção aplicada:
+ * - Remove dependência de autenticação na página pública.
+ * - Troca imagens antigas de /manus-storage/... para arquivos em client/public/.
  */
-
 export default function Home() {
-  // The userAuth hooks provides authentication state
-  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -32,12 +31,18 @@ export default function Home() {
   const [creditPeriod, setCreditPeriod] = useState(12);
   const [simulationType, setSimulationType] = useState("imovel");
   const [paymentType, setPaymentType] = useState("credito");
-  const [animatedNumbers, setAnimatedNumbers] = useState({ clients: 0, years: 0, satisfaction: 0, credit: 0 });
-  const statsRef = useRef(null);
+  const [animatedNumbers, setAnimatedNumbers] = useState({
+    clients: 0,
+    years: 0,
+    satisfaction: 0,
+    credit: 0,
+  });
+  const statsRef = useRef<HTMLDivElement | null>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [currentPlan, setCurrentPlan] = useState(0);
 
-  // tRPC mutation para criar lead no Agendor
   const createLeadMutation = trpc.contact.createLead.useMutation({
     onSuccess: () => {
       toast.success("Mensagem enviada com sucesso! Entraremos em contato em breve.");
@@ -102,96 +107,6 @@ export default function Home() {
     },
   ];
 
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % (testimonials?.length || 1));
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [testimonials?.length]);
-
-  // Animar números quando a seção fica visível
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          // Animar até 520
-          let count = 0;
-          const interval = setInterval(() => {
-            if (count < 520) {
-              count += 20;
-              setAnimatedNumbers((prev) => ({ ...prev, clients: Math.min(count, 520) }));
-            }
-          }, 20);
-          setTimeout(() => clearInterval(interval), 1000);
-
-          // Animar até 5 anos
-          let yearCount = 0;
-          const yearInterval = setInterval(() => {
-            if (yearCount < 5) {
-              yearCount += 0.2;
-              setAnimatedNumbers((prev) => ({ ...prev, years: Math.min(yearCount, 5) }));
-            }
-          }, 100);
-          setTimeout(() => clearInterval(yearInterval), 1000);
-
-          // Animar até 97%
-          let satisfactionCount = 0;
-          const satisfactionInterval = setInterval(() => {
-            if (satisfactionCount < 97) {
-              satisfactionCount += 3;
-              setAnimatedNumbers((prev) => ({ ...prev, satisfaction: Math.min(satisfactionCount, 97) }));
-            }
-          }, 30);
-          setTimeout(() => clearInterval(satisfactionInterval), 1000);
-
-          // Animar até 100M
-          let creditCount = 0;
-          const creditInterval = setInterval(() => {
-            if (creditCount < 100) {
-              creditCount += 3;
-              setAnimatedNumbers((prev) => ({ ...prev, credit: Math.min(creditCount, 100) }));
-            }
-          }, 30);
-          setTimeout(() => clearInterval(creditInterval), 1000);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (statsRef.current) {
-      observer.observe(statsRef.current);
-    }
-
-    return () => {
-      if (statsRef.current) {
-        observer.unobserve(statsRef.current);
-      }
-    };
-  }, [hasAnimated]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validar se todos os campos estão preenchidos
-    if (!formData.name || !formData.phone || !formData.creditAmount || !formData.creditPurpose) {
-      toast.error('Por favor, preencha todos os campos!');
-      return;
-    }
-    
-    setIsSubmitting(true);
-
-    // Chamar a mutação tRPC que vai criar o lead no Agendor
-    createLeadMutation.mutate({
-      name: formData.name,
-      phone: formData.phone,
-      creditAmount: formData.creditAmount,
-      creditPurpose: formData.creditPurpose,
-    });
-  };
-
   const products = [
     {
       number: "01",
@@ -228,7 +143,84 @@ export default function Home() {
     { value: "1 milhão", monthly: "R$ 5.000" },
   ];
 
-  const [currentPlan, setCurrentPlan] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+
+          let count = 0;
+          const clientInterval = setInterval(() => {
+            if (count < 520) {
+              count += 20;
+              setAnimatedNumbers((prev) => ({ ...prev, clients: Math.min(count, 520) }));
+            }
+          }, 20);
+          setTimeout(() => clearInterval(clientInterval), 1000);
+
+          let yearCount = 0;
+          const yearInterval = setInterval(() => {
+            if (yearCount < 5) {
+              yearCount += 0.2;
+              setAnimatedNumbers((prev) => ({ ...prev, years: Math.min(yearCount, 5) }));
+            }
+          }, 100);
+          setTimeout(() => clearInterval(yearInterval), 1000);
+
+          let satisfactionCount = 0;
+          const satisfactionInterval = setInterval(() => {
+            if (satisfactionCount < 97) {
+              satisfactionCount += 3;
+              setAnimatedNumbers((prev) => ({ ...prev, satisfaction: Math.min(satisfactionCount, 97) }));
+            }
+          }, 30);
+          setTimeout(() => clearInterval(satisfactionInterval), 1000);
+
+          let creditCount = 0;
+          const creditInterval = setInterval(() => {
+            if (creditCount < 100) {
+              creditCount += 3;
+              setAnimatedNumbers((prev) => ({ ...prev, credit: Math.min(creditCount, 100) }));
+            }
+          }, 30);
+          setTimeout(() => clearInterval(creditInterval), 1000);
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    const currentStatsRef = statsRef.current;
+    if (currentStatsRef) observer.observe(currentStatsRef);
+
+    return () => {
+      if (currentStatsRef) observer.unobserve(currentStatsRef);
+    };
+  }, [hasAnimated]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name || !formData.phone || !formData.creditAmount || !formData.creditPurpose) {
+      toast.error("Por favor, preencha todos os campos!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    createLeadMutation.mutate({
+      name: formData.name,
+      phone: formData.phone,
+      creditAmount: formData.creditAmount,
+      creditPurpose: formData.creditPurpose,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -236,19 +228,21 @@ export default function Home() {
       <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
         <div className="container flex items-center justify-between h-16 px-4">
           <div className="flex items-center">
-            <img 
-              src="/manus-storage/unicon-logo_e820a1b5.png"
+            <img
+              src="/unicon-logo.png"
               alt="Unicon Logo"
               className="h-16 w-auto"
-              style={{width: 'auto', height: '60px'}}
+              style={{ width: "auto", height: "60px" }}
             />
           </div>
-          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center" style={{marginRight: '129px', width: '1183px'}}>
+
+          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center" style={{ marginRight: "129px", width: "1183px" }}>
             <a href="#sobre" className="text-foreground hover:text-accent transition-colors text-sm font-medium">Sobre</a>
             <a href="#servicos" className="text-foreground hover:text-accent transition-colors text-sm font-medium">Serviços</a>
             <a href="#depoimentos" className="text-foreground hover:text-accent transition-colors text-sm font-medium">Depoimentos</a>
             <a href="#contato" className="text-foreground hover:text-accent transition-colors text-sm font-medium">Contato</a>
           </nav>
+
           <a href="#contato" className="bg-accent hover:bg-accent/90 text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors inline-block">
             Fale Conosco
           </a>
@@ -258,7 +252,6 @@ export default function Home() {
       {/* Hero Section com Simulador */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-white py-16">
         <div className="container grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Texto Hero */}
           <div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 font-montserrat">
               REALIZE SEUS OBJETIVOS COM SEGURANÇA E TRANSPARÊNCIA
@@ -271,30 +264,26 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Simulador */}
           <div className="bg-white text-foreground p-8 rounded-lg shadow-lg">
             <h3 className="text-2xl font-bold mb-6 font-montserrat">SIMULE SEU CONSÓRCIO AGORA!</h3>
-            
-            {/* Tipo de Simulação */}
+
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-3">Selecione sua próxima conquista:</label>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setSimulationType("imovel")}
                   className={`flex-1 py-2 px-4 rounded-full font-semibold transition-colors ${
-                    simulationType === "imovel"
-                      ? "bg-primary text-white"
-                      : "bg-gray-200 text-foreground hover:bg-gray-300"
+                    simulationType === "imovel" ? "bg-primary text-white" : "bg-gray-200 text-foreground hover:bg-gray-300"
                   }`}
                 >
                   Imóvel
                 </button>
                 <button
+                  type="button"
                   onClick={() => setSimulationType("veiculo")}
                   className={`flex-1 py-2 px-4 rounded-full font-semibold transition-colors ${
-                    simulationType === "veiculo"
-                      ? "bg-primary text-white"
-                      : "bg-gray-200 text-foreground hover:bg-gray-300"
+                    simulationType === "veiculo" ? "bg-primary text-white" : "bg-gray-200 text-foreground hover:bg-gray-300"
                   }`}
                 >
                   Veículo
@@ -302,26 +291,23 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Tipo de Pagamento */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-3">Simule seu plano por:</label>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setPaymentType("credito")}
                   className={`flex-1 py-2 px-4 rounded-full font-semibold transition-colors ${
-                    paymentType === "credito"
-                      ? "bg-primary text-white"
-                      : "bg-gray-200 text-foreground hover:bg-gray-300"
+                    paymentType === "credito" ? "bg-primary text-white" : "bg-gray-200 text-foreground hover:bg-gray-300"
                   }`}
                 >
                   Crédito
                 </button>
                 <button
+                  type="button"
                   onClick={() => setPaymentType("parcela")}
                   className={`flex-1 py-2 px-4 rounded-full font-semibold transition-colors ${
-                    paymentType === "parcela"
-                      ? "bg-primary text-white"
-                      : "bg-gray-200 text-foreground hover:bg-gray-300"
+                    paymentType === "parcela" ? "bg-primary text-white" : "bg-gray-200 text-foreground hover:bg-gray-300"
                   }`}
                 >
                   Parcela
@@ -329,10 +315,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Valor do Crédito */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-2">Selecione o valor do crédito:</label>
-              <div className="text-2xl font-bold text-primary mb-3">R$ {creditAmount.toLocaleString('pt-BR')}</div>
+              <div className="text-2xl font-bold text-primary mb-3">R$ {creditAmount.toLocaleString("pt-BR")}</div>
               <input
                 type="range"
                 min="50000"
@@ -344,10 +329,11 @@ export default function Home() {
               />
             </div>
 
-            {/* Prazo */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-2">Selecione o prazo do crédito: (1 a 240 meses)</label>
-              <div className="text-2xl font-bold text-primary mb-3">{creditPeriod} mês{creditPeriod !== 1 ? "es" : ""}</div>
+              <div className="text-2xl font-bold text-primary mb-3">
+                {creditPeriod} mês{creditPeriod !== 1 ? "es" : ""}
+              </div>
               <input
                 type="range"
                 min="1"
@@ -365,8 +351,6 @@ export default function Home() {
         </div>
       </section>
 
-
-
       {/* Seção Sobre */}
       <section id="sobre" className="py-16 bg-white">
         <div className="container">
@@ -379,30 +363,21 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Stats Animados */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div ref={statsRef} className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="text-center p-6 bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2 font-montserrat">
-                520+
-              </div>
+              <div className="text-4xl md:text-5xl font-bold text-accent mb-2 font-montserrat">{animatedNumbers.clients || 520}+</div>
               <div className="text-sm md:text-base text-foreground/70 font-medium">Clientes Satisfeitos</div>
             </div>
             <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2 font-montserrat">
-                5
-              </div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2 font-montserrat">{Math.round(animatedNumbers.years || 5)}</div>
               <div className="text-sm md:text-base text-foreground/70 font-medium">Anos de Mercado</div>
             </div>
             <div className="text-center p-6 bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2 font-montserrat">
-                97%
-              </div>
+              <div className="text-4xl md:text-5xl font-bold text-accent mb-2 font-montserrat">{Math.round(animatedNumbers.satisfaction || 97)}%</div>
               <div className="text-sm md:text-base text-foreground/70 font-medium">Avaliações 5⭐</div>
             </div>
             <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2 font-montserrat">
-                R$ 100M
-              </div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2 font-montserrat">R$ {Math.round(animatedNumbers.credit || 100)}M</div>
               <div className="text-sm md:text-base text-foreground/70 font-medium">Crédito Contemplado</div>
             </div>
           </div>
@@ -415,7 +390,6 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
             O QUE VOCÊ PROCURA, NÓS TEMOS A SOLUÇÃO IDEAL
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product, index) => (
               <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
@@ -435,9 +409,9 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
             PLANOS PARA VOCÊ APROVEITAR
           </h2>
-
           <div className="flex justify-center items-center gap-8">
             <button
+              type="button"
               onClick={() => setCurrentPlan(Math.max(0, currentPlan - 1))}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
@@ -458,6 +432,7 @@ export default function Home() {
             </div>
 
             <button
+              type="button"
               onClick={() => setCurrentPlan(Math.min(plans.length - 3, currentPlan + 1))}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
@@ -473,49 +448,44 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
             O QUE NOSSOS CLIENTES DIZEM
           </h2>
-
           <div className="max-w-2xl mx-auto">
             <Card className="p-8 text-center">
-              {testimonials && testimonials.length > 0 && testimonials[currentTestimonial] ? (
+              {testimonials[currentTestimonial] ? (
                 <>
                   <div className="flex justify-center gap-1 mb-4">
-                    {[...Array(testimonials[currentTestimonial]?.rating || 5)].map((_, i) => (
+                    {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
                       <span key={i} className="text-yellow-400 text-xl">★</span>
                     ))}
                   </div>
-                  <p className="text-lg mb-6 italic text-foreground/80">
-                    "{testimonials[currentTestimonial]?.text}"
-                  </p>
-                  <div className="font-bold text-primary">{testimonials[currentTestimonial]?.name}</div>
-                  <div className="text-sm text-foreground/70">{testimonials[currentTestimonial]?.role}</div>
+                  <p className="text-lg mb-6 italic text-foreground/80">"{testimonials[currentTestimonial].text}"</p>
+                  <div className="font-bold text-primary">{testimonials[currentTestimonial].name}</div>
+                  <div className="text-sm text-foreground/70">{testimonials[currentTestimonial].role}</div>
                 </>
               ) : (
                 <p className="text-foreground/70">Carregando depoimentos...</p>
               )}
 
-              {/* Controles do Carrossel */}
               <div className="flex justify-center items-center gap-4 mt-8">
                 <button
-                  onClick={() => setCurrentTestimonial((prev) => (prev - 1 + (testimonials?.length || 1)) % (testimonials?.length || 1))}
+                  type="button"
+                  onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-
                 <div className="flex gap-2">
-                  {testimonials && testimonials.length > 0 && testimonials.map((_, index) => (
+                  {testimonials.map((_, index) => (
                     <button
+                      type="button"
                       key={index}
                       onClick={() => setCurrentTestimonial(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentTestimonial ? "bg-primary" : "bg-gray-300"
-                      }`}
+                      className={`w-2 h-2 rounded-full transition-colors ${index === currentTestimonial ? "bg-primary" : "bg-gray-300"}`}
                     />
                   ))}
                 </div>
-
                 <button
-                  onClick={() => setCurrentTestimonial((prev) => (prev + 1) % (testimonials?.length || 1))}
+                  type="button"
+                  onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <ChevronRightIcon className="w-5 h-5" />
@@ -523,7 +493,7 @@ export default function Home() {
               </div>
 
               <div className="text-sm text-foreground/70 mt-4">
-                {currentTestimonial + 1} de {testimonials?.length || 0}
+                {currentTestimonial + 1} de {testimonials.length}
               </div>
             </Card>
           </div>
@@ -541,40 +511,17 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
-            {/* Embracon */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
-              <img 
-                src="/manus-storage/embracon-logo_1b7e1b10.png"
-                alt="Embracon - Representante Autorizado"
-                className="h-24 w-auto object-contain"
-              />
+              <img src="/embracon-logo.png" alt="Embracon - Representante Autorizado" className="h-24 w-auto object-contain" />
             </div>
-
-            {/* Yamaha */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
-              <img 
-                src="/manus-storage/yamaha-logo_21e4b677.png"
-                alt="Yamaha - Representante Autorizado"
-                className="h-24 w-auto object-contain"
-              />
+              <img src="/yamaha-logo.png" alt="Yamaha - Representante Autorizado" className="h-24 w-auto object-contain" />
             </div>
-
-            {/* Tradição */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
-              <img 
-                src="/manus-storage/tradicao-logo_c7563190.png"
-                alt="Tradição - Representante Autorizado"
-                className="h-24 w-auto object-contain"
-              />
+              <img src="/tradicao-logo.png" alt="Tradição - Representante Autorizado" className="h-24 w-auto object-contain" />
             </div>
-
-            {/* Servopa */}
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center min-h-40">
-              <img 
-                src="/manus-storage/servopa-logo_9e4dd2ab.png"
-                alt="Servopa - Representante Autorizado"
-                className="h-24 w-auto object-contain"
-              />
+              <img src="/servopa-logo.png" alt="Servopa - Representante Autorizado" className="h-24 w-auto object-contain" />
             </div>
           </div>
         </div>
@@ -586,21 +533,18 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
             VAMOS CONVERSAR?
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Informações de Contato */}
             <div>
               <div className="mb-8">
-                <h3 className="text-xl font-bold mb-2 text-primary font-montserrat">📞 TELEFONE</h3>
+                <h3 className="text-xl font-bold mb-2 text-primary font-montserrat"> TELEFONE</h3>
                 <p className="text-foreground/70">+55 49 92002-6329</p>
               </div>
               <div className="mb-8">
-                <h3 className="text-xl font-bold mb-2 text-primary font-montserrat">📍 LOCALIZAÇÃO</h3>
+                <h3 className="text-xl font-bold mb-2 text-primary font-montserrat"> LOCALIZAÇÃO</h3>
                 <p className="text-foreground/70">Chapecó, Santa Catarina</p>
               </div>
             </div>
 
-            {/* Formulário */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 type="text"
@@ -651,13 +595,10 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <img 
-                src="/manus-storage/unicon-logo_e820a1b5.png"
-                alt="Unicon Logo"
-                className="h-16 w-auto mb-4"
-              />
+              <img src="/unicon-logo.png" alt="Unicon Logo" className="h-16 w-auto mb-4" />
               <p className="text-white/70 text-sm">Solução financeira para o crescimento da sua colheita.</p>
             </div>
+
             <div>
               <h4 className="font-bold mb-4 font-montserrat">LINKS RÁPIDOS</h4>
               <ul className="space-y-2 text-sm text-white/70">
@@ -666,6 +607,7 @@ export default function Home() {
                 <li><a href="#depoimentos" className="hover:text-white transition-colors">Depoimentos</a></li>
               </ul>
             </div>
+
             <div>
               <h4 className="font-bold mb-4 font-montserrat">CONTATO</h4>
               <ul className="space-y-2 text-sm text-white/70">
@@ -673,6 +615,7 @@ export default function Home() {
                 <li>Chapecó, SC</li>
               </ul>
             </div>
+
             <div>
               <h4 className="font-bold mb-4 font-montserrat">REDES SOCIAIS</h4>
               <ul className="space-y-2 text-sm text-white/70">
@@ -681,6 +624,7 @@ export default function Home() {
               </ul>
             </div>
           </div>
+
           <div className="border-t border-white/20 pt-8 text-center text-sm text-white/70">
             <p>© 2026 Unicon Investimentos. Todos os direitos reservados.</p>
           </div>
