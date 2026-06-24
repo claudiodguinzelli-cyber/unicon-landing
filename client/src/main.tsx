@@ -18,7 +18,14 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  try {
+    const loginUrl = getLoginUrl();
+    window.location.href = loginUrl;
+  } catch (e) {
+    console.error("[Auth] Failed to redirect to login:", e);
+    // Fallback: reload page
+    window.location.reload();
+  }
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -40,7 +47,7 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: new URL("/api/trpc", window.location.origin).toString(),
       transformer: superjson,
       fetch(input, init) {
         return globalThis.fetch(input, {
