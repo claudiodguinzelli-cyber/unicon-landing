@@ -10,14 +10,14 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 /**
  * Landing page Unicon Investimentos.
- * Correção aplicada:
+ * Correções aplicadas:
  * - Remove dependência de autenticação na página pública.
  * - Troca imagens antigas de /manus-storage/... para arquivos em client/public/.
+ * - Envia formulário e simulador diretamente para o WhatsApp.
  */
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -39,22 +39,17 @@ export default function Home() {
   });
   const statsRef = useRef<HTMLDivElement | null>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentPlan, setCurrentPlan] = useState(0);
 
-  const createLeadMutation = trpc.contact.createLead.useMutation({
-    onSuccess: () => {
-      toast.success("Mensagem enviada com sucesso! Entraremos em contato em breve.");
-      setFormData({ name: "", phone: "", creditAmount: "", creditPurpose: "" });
-      setIsSubmitting(false);
-    },
-    onError: (error) => {
-      toast.error("Erro ao enviar mensagem. Tente novamente.");
-      console.error("Erro:", error);
-      setIsSubmitting(false);
-    },
-  });
+  const WHATSAPP_NUMBER = "5549920026329";
+
+  const openWhatsApp = (message: string) => {
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const formatCurrency = (value: number) => `R$ ${value.toLocaleString("pt-BR")}`;
 
   const testimonials = [
     {
@@ -213,13 +208,32 @@ export default function Home() {
       return;
     }
 
-    setIsSubmitting(true);
-    createLeadMutation.mutate({
-      name: formData.name,
-      phone: formData.phone,
-      creditAmount: formData.creditAmount,
-      creditPurpose: formData.creditPurpose,
-    });
+    const message = [
+      "Olá, vim pelo site da Unicon e quero falar sobre crédito/consórcio.",
+      "",
+      `Nome: ${formData.name}`,
+      `Telefone: ${formData.phone}`,
+      `Crédito pretendido: ${formData.creditAmount}`,
+      `Finalidade: ${formData.creditPurpose}`,
+    ].join("\n");
+
+    openWhatsApp(message);
+
+    toast.success("WhatsApp aberto com os dados preenchidos.");
+    setFormData({ name: "", phone: "", creditAmount: "", creditPurpose: "" });
+  };
+
+  const handleSimulationSubmit = () => {
+    const message = [
+      "Olá, quero simular um consórcio pela Unicon.",
+      "",
+      `Tipo: ${simulationType === "imovel" ? "Imóvel" : "Veículo"}`,
+      `Simular por: ${paymentType === "credito" ? "Crédito" : "Parcela"}`,
+      `Valor selecionado: ${formatCurrency(creditAmount)}`,
+      `Prazo selecionado: ${creditPeriod} mês${creditPeriod !== 1 ? "es" : ""}`,
+    ].join("\n");
+
+    openWhatsApp(message);
   };
 
   return (
@@ -344,9 +358,13 @@ export default function Home() {
               />
             </div>
 
-            <a href="#contato" className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors block text-center">
+            <button
+              type="button"
+              onClick={handleSimulationSubmit}
+              className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors block text-center"
+            >
               Simular Agora
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -552,7 +570,6 @@ export default function Home() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                disabled={isSubmitting}
               />
               <Input
                 type="tel"
@@ -560,7 +577,6 @@ export default function Home() {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
-                disabled={isSubmitting}
               />
               <Input
                 type="text"
@@ -568,7 +584,6 @@ export default function Home() {
                 value={formData.creditAmount}
                 onChange={(e) => setFormData({ ...formData, creditAmount: e.target.value })}
                 required
-                disabled={isSubmitting}
               />
               <Input
                 type="text"
@@ -576,14 +591,12 @@ export default function Home() {
                 value={formData.creditPurpose}
                 onChange={(e) => setFormData({ ...formData, creditPurpose: e.target.value })}
                 required
-                disabled={isSubmitting}
               />
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-lg font-semibold transition-colors"
               >
-                {isSubmitting ? "Enviando..." : "Enviar Mensagem"}
+                Enviar Mensagem
               </button>
             </form>
           </div>
