@@ -106,7 +106,7 @@ export default function Home() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+      setCurrentTestimonial((prev) => (prev + 1) % (testimonials?.length || 1));
     }, 4000);
     return () => clearInterval(interval);
   }, [testimonials.length]);
@@ -375,55 +375,57 @@ export default function Home() {
               A UNICON INVESTIMENTOS É PIONEIRA
             </h2>
             <p className="text-lg text-foreground/80">
-              Com 5 anos de experiência, ajudamos empresários e pessoas físicas a realizarem seus sonhos através de estratégias financeiras personalizadas.
+              Com 5 anos de experiência, ajudamos empresários e pessoas físicas a realizarem seus sonhos através de estratégias financeiras seguras e transparentes.
             </p>
           </div>
 
-          {/* Stats Animados */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div className="text-center p-6 bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2 font-montserrat">
-                520+
+          <div ref={statsRef} className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                {Math.round(animatedNumbers.clients)}+
               </div>
-              <div className="text-sm md:text-base text-foreground/70 font-medium">Clientes Satisfeitos</div>
+              <p className="text-foreground/70 font-medium">Clientes Atendidos</p>
             </div>
-            <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2 font-montserrat">
-                5
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                {Math.round(animatedNumbers.years)}
               </div>
-              <div className="text-sm md:text-base text-foreground/70 font-medium">Anos de Mercado</div>
+              <p className="text-foreground/70 font-medium">Anos de Mercado</p>
             </div>
-            <div className="text-center p-6 bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2 font-montserrat">
-                97%
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                {Math.round(animatedNumbers.satisfaction)}%
               </div>
-              <div className="text-sm md:text-base text-foreground/70 font-medium">Avaliações 5⭐</div>
+              <p className="text-foreground/70 font-medium">Satisfação</p>
             </div>
-            <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2 font-montserrat">
-                R$ 100M
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                R$ {Math.round(animatedNumbers.credit)}M
               </div>
-              <div className="text-sm md:text-base text-foreground/70 font-medium">Crédito Contemplado</div>
+              <p className="text-foreground/70 font-medium">Crédito Contemplado</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Seção Serviços */}
-      <section id="servicos" className="py-16 bg-gray-50">
+      <section id="servicos" className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
-            O QUE VOCÊ PROCURA, NÓS TEMOS A SOLUÇÃO IDEAL
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center font-montserrat text-primary">
+            NOSSOS SERVIÇOS
           </h2>
+          <p className="text-center text-foreground/70 mb-12 max-w-2xl mx-auto">
+            Oferecemos soluções completas de crédito e consórcio para realizar seus objetivos
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-4xl font-bold text-accent mb-4">{product.number}</div>
-                <h3 className="text-xl font-bold mb-3 text-primary font-montserrat">{product.title}</h3>
+              <Card key={index} className="p-6 hover:shadow-lg transition-shadow">
+                <div className="text-3xl font-bold text-primary mb-3 font-montserrat">{product.number}</div>
+                <div className="text-primary mb-3">{product.icon}</div>
+                <h3 className="text-lg font-bold mb-2 font-montserrat">{product.title}</h3>
                 <p className="text-foreground/70 text-sm">{product.description}</p>
-                <div className="mt-4 text-accent">{product.icon}</div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
@@ -432,43 +434,30 @@ export default function Home() {
       {/* Seção Planos */}
       <section className="py-16 bg-white">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
-            PLANOS PARA VOCÊ APROVEITAR
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center font-montserrat text-primary">
+            PLANOS DE CRÉDITO
           </h2>
+          <p className="text-center text-foreground/70 mb-12 max-w-2xl mx-auto">
+            Escolha o plano que melhor se adequa ao seu perfil e necessidades
+          </p>
 
-          <div className="flex justify-center items-center gap-8">
-            <button
-              onClick={() => setCurrentPlan(Math.max(0, currentPlan - 1))}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-              {plans.slice(currentPlan, currentPlan + 3).map((plan, index) => (
-                <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-                  <div className="text-2xl font-bold text-accent mb-2">{plan.value}</div>
-                  <div className="text-sm text-foreground/70 mb-4">Valor da parcela</div>
-                  <div className="text-xl font-bold text-primary">{plan.monthly}</div>
-                  <button className="mt-4 w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                    Saiba Mais
-                  </button>
-                </Card>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setCurrentPlan(Math.min(plans.length - 3, currentPlan + 1))}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ChevronRightIcon className="w-6 h-6" />
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {plans.map((plan, index) => (
+              <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
+                <div className="text-2xl font-bold text-primary mb-2 font-montserrat">{plan.value}</div>
+                <div className="text-3xl font-bold text-accent mb-4">{plan.monthly}</div>
+                <p className="text-foreground/70 text-sm mb-4">Parcela mensal</p>
+                <button className="w-full bg-primary hover:bg-primary/90 text-white py-2 rounded-lg font-semibold transition-colors">
+                  Simular
+                </button>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Seção Depoimentos */}
-      <section id="depoimentos" className="py-16 bg-gray-50">
+      <section id="depoimentos" className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-montserrat text-primary">
             O QUE NOSSOS CLIENTES DIZEM
@@ -476,28 +465,34 @@ export default function Home() {
 
           <div className="max-w-2xl mx-auto">
             <Card className="p-8 text-center">
-              <div className="flex justify-center gap-1 mb-4">
-                {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                  <span key={i} className="text-yellow-400 text-xl">★</span>
-                ))}
-              </div>
-              <p className="text-lg mb-6 italic text-foreground/80">
-                "{testimonials[currentTestimonial].text}"
-              </p>
-              <div className="font-bold text-primary">{testimonials[currentTestimonial].name}</div>
-              <div className="text-sm text-foreground/70">{testimonials[currentTestimonial].role}</div>
+              {testimonials && testimonials.length > 0 && testimonials[currentTestimonial] ? (
+                <>
+                  <div className="flex justify-center gap-1 mb-4">
+                    {[...Array(testimonials[currentTestimonial]?.rating || 5)].map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-xl">★</span>
+                    ))}
+                  </div>
+                  <p className="text-lg mb-6 italic text-foreground/80">
+                    "{testimonials[currentTestimonial]?.text}"
+                  </p>
+                  <div className="font-bold text-primary">{testimonials[currentTestimonial]?.name}</div>
+                  <div className="text-sm text-foreground/70">{testimonials[currentTestimonial]?.role}</div>
+                </>
+              ) : (
+                <p className="text-foreground/70">Carregando depoimentos...</p>
+              )}
 
               {/* Controles do Carrossel */}
               <div className="flex justify-center items-center gap-4 mt-8">
                 <button
-                  onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                  onClick={() => setCurrentTestimonial((prev) => (prev - 1 + (testimonials?.length || 1)) % (testimonials?.length || 1))}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
 
                 <div className="flex gap-2">
-                  {testimonials.map((_, index) => (
+                  {testimonials && testimonials.length > 0 && testimonials.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentTestimonial(index)}
@@ -509,7 +504,7 @@ export default function Home() {
                 </div>
 
                 <button
-                  onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
+                  onClick={() => setCurrentTestimonial((prev) => (prev + 1) % (testimonials?.length || 1))}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <ChevronRightIcon className="w-5 h-5" />
@@ -517,7 +512,7 @@ export default function Home() {
               </div>
 
               <div className="text-sm text-foreground/70 mt-4">
-                {currentTestimonial + 1} de {testimonials.length}
+                {currentTestimonial + 1} de {testimonials?.length || 0}
               </div>
             </Card>
           </div>
