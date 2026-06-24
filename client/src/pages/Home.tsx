@@ -164,11 +164,11 @@ export default function Home() {
           let yearCount = 0;
           const yearInterval = setInterval(() => {
             if (yearCount < 5) {
-              yearCount += 0.2;
+              yearCount += 0.5;
               setAnimatedNumbers((prev) => ({ ...prev, years: Math.min(yearCount, 5) }));
             }
           }, 100);
-          setTimeout(() => clearInterval(yearInterval), 1000);
+          setTimeout(() => clearInterval(yearInterval), 1200);
 
           let satisfactionCount = 0;
           const satisfactionInterval = setInterval(() => {
@@ -518,14 +518,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Seção Representantes Autorizados */}
+      {/* Seção Representante Autorizado */}
       <section className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center font-montserrat text-primary">
-            REPRESENTANTES AUTORIZADOS
+            REPRESENTANTE AUTORIZADO
           </h2>
           <p className="text-center text-foreground/70 mb-12 max-w-2xl mx-auto">
-            Somos representantes autorizados das principais marcas de consórcio e crédito do Brasil
+            Somos representante autorizado das principais marcas de consórcio e crédito do Brasil
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
